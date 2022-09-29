@@ -1,0 +1,181 @@
+# Introduction to Data Science HW 4
+##### Copyright Jeffrey Stanton, Jeffrey Saltz, and Jasmina Tacheva
+
+
+```{r}
+# Enter your name here: Tim Tieng
+```
+
+### Attribution statement: (choose only one and delete the rest)
+
+
+```{r}
+# 2. I did this homework with help from the book and the professor and these Internet sources:
+# https://www.guru99.com/r-data-frames.html -- Subset() function to create a df based on a condition
+
+```
+
+Reminders of things to practice from previous weeks: <br>
+Descriptive statistics: 	mean( ) max( ) min( )<br>
+Coerce to numeric:		as.numeric( )<br>
+
+## Part 1: Use the Starter Code 
+
+Below, I have provided a starter file to help you. <br>
+
+Each of these lines of code **must be commented** (the comment must that explains what is going on, so that I know you understand the code and results).
+
+
+```{r}
+# This code block imports the jsonlite package and all the functions within that module
+library(jsonlite)
+# Below showcases how you can create a variable and set it to a URL address to be used later on
+dataset <- url("https://intro-datascience.s3.us-east-2.amazonaws.com/role.json")
+# readlines is now a variable that utilizes the fromJSON() from the jsonlite package to create a readable variable
+readlines <- jsonlite::fromJSON(dataset)
+# df is avariable that contains the formatted data
+df <- readlines$objects$person
+# Inspect the dataframe utilizing str() and summary() functions. Both return information about the dataframe itself
+str(df)
+summary(df)
+```
+
+A.	Explore the **df** dataframe (e.g., using head() or whatever you think is best).
+
+
+```{r}
+# head() is a function used to only return the first couple rows. The opposiote of this function would be tail()
+head(df)
+tail(df)
+```
+
+B.	Explain the dataset <br>
+o	What is the dataset about? <br>
+o	How many rows are there and what does a row represent?<br>
+o	How many columns and what does each column represent?<br>
+
+
+
+```{r}
+# B1 - The dataset provides information about U.S Senators where each column of the dataframe hold information about a specific senator.
+# B2- There are 100 rows in the dataset which xan be verified by either using the nrow(df), str(df), or summary(df) functions. The number of objects tells you how many rows/entries there are
+nrow(df)
+# B3 - There are 17 columns and each column name is a category of specific information. 
+ncol(df)
+```
+
+C. What does running this line of code do? Explain in a comment:
+
+
+```{r}
+# The code below creates a new dataframe of "vals" and has it set to an array of birth year values in the entire dataset.
+# The substr() function sybntax can be described as substr(<dataframe>$<specificColumnToSearch>, <startIndex>, <endingIndex>)
+vals <- substr(df$birthday,1,4)
+vals
+```
+
+D. Create a new attribute 'age' - how old the person is 
+**Hint:** You may need to convert it to numeric first.
+
+
+```{r}
+# create a new df and assign the converted datatype values of the 'val' df. Check if conversion worked
+numericVals <- as.numeric(vals)
+str(numericVals)
+# Create a new field of 'age' and subtract the current year to from the birtyear
+currentYear <- 2022
+age <- currentYear - numericVals
+# Inspect
+head(age)
+tail(age)
+```
+
+E. Create a function that reads in the role json dataset, and adds the age attribute to the dataframe, and returns that dataframe
+
+
+```{r}
+#Create the addAttribute() which takes in a df, adds a new field, and returns the new complete df.
+addAttribute <- function(df)
+  {
+    # re assign the df variable to include the age column
+  df<-data.frame(df,age)
+  # return the first couple rows of the df
+  return(df)
+  }
+
+#Calling function
+addAttribute(df)
+```
+
+F. Use (call, invoke) the function, and store the results in df
+
+
+```{r}
+# Reassign the df variable with the output of the addAttribute function
+df <- addAttribute(df)
+# inspect
+str(df)
+```
+
+## Part 2: Investigate the resulting dataframe 'df'
+
+A.	How many senators are women? 
+
+
+```{r}
+# Create varaible that holds the value returrned from the sum () -> calculate the count where the gender column has female
+numFemales <- sum(df$gender == "female")
+# Returns 24 females
+numFemales
+```
+
+B.	How many senators have a YouTube account?  
+
+
+```{r}
+# Create a variable that holds the count of null values in the youtubeid column
+noYoutubeAccount <- sum(is.na(df$youtubeid))
+noYoutubeAccount
+
+# Subtract value from the amount of rows in the df - Returns 73
+numYoutubeAccounts <- 100 - noYoutubeAccount
+numYoutubeAccounts
+
+```
+
+C.	 How many women senators have a YouTube account?
+
+
+```{r}
+# This code block creates the womanSenatorsWithYoutubeAccounts variable and sets it to amount of females with youtubeid values
+# For this code block, you need to have multiple criteria to ensure you select the correct data. gender column only females, and youtubeId  column with no null values
+womenSenatorsWithYoutubeAccounts <- sum(df$gender == 'female' & df$youtubeid != "NA", na.rm = TRUE)
+womenSenatorsWithYoutubeAccounts
+```
+
+D.	Create a new dataframe called **youtubeWomen** that only includes women senators who have a YouTube account.   
+
+
+```{r}
+# create a df with the same conditions as above. Used https://www.guru99.com/r-data-frames.html to help create the correct df
+youtubeWomen <-data.frame(subset(df,df$gender == 'female' & df$youtubeid != "NA"))
+str(youtubeWomen)
+youtubeWomen$gender
+# This is correct because the str shows 16 rows, which is the same value as the above code block. Additionally, the youbTube$gender command returns only female values.
+
+```
+
+E.	Make a histogram of the **age** of senators in **youtubeWomen**, and then another for the senetors in **df**. Add a comment describing the shape of the distributions.
+
+
+```{r}
+# Histogram of the age df and mean value
+hist(age)
+mean(age)
+
+# Histogram of youtubeWomen$age df and mean value
+hist(youtubeWomen$age)
+mean(youtubeWomen$age)
+
+# Observations - The histogram of all the ages in the age df returns a typical bell-shaped histogram reflecting a normal distribution that spans from around 35 years to 90 years. The mean of this sample is 65.24 years. This means that in that dataset, the average age of a senator is 65.24 years. Comparing this to the age field of the youtubeWomen df, the distribution is a bit more skewed, with a mean female age value of 67.125 years, and the values of the histogram spanning from 40 years to 90 years. This behavior suggests that female senators are typically older than male senators.  Additionally, this also suggests that a female senators career starts later than a male senator.
+```

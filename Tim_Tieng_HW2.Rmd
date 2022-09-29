@@ -1,0 +1,152 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# Intro to Data Science - HW 2
+##### Copyright  Jeffrey Stanton, Jeffrey Saltz, and Jasmina Tacheva
+
+
+```{r}
+# Enter your name here: Tim Tieng
+```
+
+### Attribution statement: (choose only one and delete the rest)
+
+
+```{r}
+# 2. I did this homework with help from the book and the professor and these Internet sources: https://study.com/academy/lesson/arrange-function-in-r-programming.html
+```
+
+### Reminders of things to practice from last week: 
+Assignment arrow  		<- <br>
+The combine command 	c( ) <br>
+Descriptive statistics 	mean( ) sum( ) max( ) <br>
+Arithmetic operators		+ - * /<br>
+Boolean operators		>    <    >=    <=   ==   !=  <br>
+
+**This Week:** Explore the **quakes** dataset (which is included in R). Copy the **quakes** dataset into a new dataframe (call it **myQuakes**), so that if you need to start over, you can do so easily (by copying quakes into myQuakes again). Summarize the variables in **myQuakes**. Also explore the structure of the dataframe
+
+
+
+```{r}
+# Load tidyverse
+library(tidyverse)
+
+# Create a DF and check output
+myQuakes <- quakes
+str(myQuakes)
+summary(myQuakes)
+head(myQuakes)
+```
+
+**Step 1:** Explore the earthquake magnitude variable called **mag**  <br>
+
+A.	What is the average magnitude? Use mean() or summary():
+
+
+```{r}
+# Approach 1 - Mean()
+meanMagnitude <- mean(myQuakes$mag)
+meanMagnitude
+
+#Approach 2 - Summary()
+summary(myQuakes$mag)
+```
+
+B.	What is the magnitude of the largest earthquake? Use max() or summary() and save the result in a variable called **maxQuake**:
+
+
+```{r}
+maxQuake <- max(myQuakes$mag)
+maxQuake
+```
+
+C.	What is the magnitude of the smallest earthquake? Use min() or summary() and save the result in a variable called **minQuake**:
+
+
+```{r}
+minQuake <- min(myQuakes$mag)
+minQuake
+```
+
+D.	Output the **third row** of the dataframe
+
+
+```{r}
+# Create DF var; Selecting 3 rows, 0 columns from myQuakes DF
+thirdRow <- myQuakes[3,]
+thirdRow
+```
+
+E. Create a new dataframe, with only the rows where the **magnitude is greater than 4**. How many rows are in that dataframe (use code, do not count by looking at the output) 
+
+
+```{r}
+# Create new DF which equals quakes with magnitude greater than 4
+dfNew <- myQuakes[myQuakes$mag >4,]
+head(dfNew)
+# Use str() to determine how many objects/rows in df
+str(dfNew)
+numRowsInDFNew <- 954
+numRowsInDFNew
+```
+
+F.	Create a **sorted dataframe** based on magnitude and store it in **quakeSorted1**. Do the sort two different ways, once with arrange() and then with order()
+
+
+```{r}
+# Approach 1 - Order()
+quakeSorted1 <- myQuakes[order(myQuakes$mag), ]
+head(quakeSorted1)
+
+# Approach 2 - Arrange()
+quakeSorted2 <- arrange(myQuakes,mag)
+head(quakeSorted2)
+```
+
+
+G.	What are the latitude and longitude of the quake reported by the largest number of stations?  
+
+
+```{r}
+# Determine Max of Station Field and set as var
+maxStationValue <- max(myQuakes$stations)
+maxStationValue
+# Create DF that selects Lat, Long and Stations fields
+latLongStationDf<- select(myQuakes,lat, long, stations)
+# Pipe DF to filter() condition
+latLongStationDf <- latLongStationDf %>% filter(stations == maxStationValue)
+latLongStationDf
+```
+
+H.	What are the latitude and longitude of the quake reported by the smallest number of stations?  
+
+
+```{r}
+# Determine Min of Station Field and set as a var
+minStationValue <- min(myQuakes$stations)
+minStationValue
+# Create DF that selects Lat, Long and Stations fields
+latLongStationDf<- select(myQuakes,lat, long, stations)
+# Pipe DF to filter() condition
+latLongStationDf <- latLongStationDf %>% filter(stations == minStationValue)
+latLongStationDf
+```
+
+**Step 3:** Using conditional if statements <br>
+
+I.	 Test if **maxQuake** is greater than 7 (output “yes” or “no”) <br>
+**Hint:** Try modifying the following code in R: 
+
+
+```{r}
+if  (maxQuake > 7) "yes" else "no"
+```
+
+J.	 Following the same logic, test if **minQuake** is less than 3 (output “yes” or “no”):
+
+
+```{r}
+if (minQuake < 3) "yes" else "no"
+```

@@ -1,0 +1,229 @@
+# Intro to Data Science - HW 6
+##### Copyright Jeffrey Stanton, Jeffrey Saltz, and Jasmina Tacheva
+
+
+```{r}
+# Enter your name here: Tim Tieng
+```
+
+
+### Attribution statement: (choose only one and delete the rest)
+
+
+```{r}
+# 2. I did this homework with help from the book and the professor and these Internet sources:
+# https://www.statology.org/r-select-rows-by-condition/ , https://r-charts.com/spatial/choropleth-map-ggplot2/
+
+```
+
+Last assignment we explored **data visualization** in R using the **ggplot2** package. This homework continues to use ggplot, but this time, with maps.  In addition, we will merge datasets using the built-in **merge( )** function, which provides a similar capability to a **JOIN in SQL** (don't worry if you do not know SQL). Many analytical strategies require joining data from different sources based on a **“key”** – a field that two datasets have in common. 
+
+## Step 1: Load the population data
+
+A.	Read the following JSON file, https://intro-datascience.s3.us-east-2.amazonaws.com/cities.json and store it in a variable called **pop**.
+
+Examine the resulting pop dataframe and add comments explaining what each column contains.
+
+
+
+```{r}
+# Load all Required Packages for Homework
+#install.packages("ggmap")
+library(jsonlite)
+library(ggplot2)
+library(ggmap)
+library(tidyverse)
+library(maps)
+
+# Create the Variable Pop by reading the json file in one step -- pass in the fromJSON function into the data.frame() function
+pop<- data.frame(fromJSON("https://intro-datascience.s3.us-east-2.amazonaws.com/cities.json"))
+
+# Inspect
+str(pop)
+head(pop)
+
+# Explanation Section
+# There are 1000 Rows and 7 fields (columns) in this data frame.
+# The "city" field is of type char and has the name of cities in the data set. This will likely require a data type conversion to do any aggregations
+# The "growth_from_2000_to_2013" field is of type char and shows the percent change in population for this timeframe. This will also require a data type conversion
+# The "latitude" field is of type numeric and holds the x-coordinate value for the lat-long system
+# The "longitude" field is of type numeric and holds the y-coordinate value for the lat-long system
+# The "population" field is of type char and has the value of the population for a row. This will likely require data type conversion for any aggregations
+# The "rank" field is of type char and shows the rank of a given row. This will likely requiure data type conversion if we aggregate on this field
+# The 'state' field is of type char and shows the state the city belongs to.
+```
+
+B.	Calculate the **average population** in the dataframe. Why is using mean() directly not working? Find a way to correct the data type of this variable so you can calculate the average (and then calculate the average)
+
+Hint: use **str(pop)** or **glimpse(pop)** to help understand the dataframe
+
+
+```{r}
+# After using str(pop) above, we see that thee population is a char datatype. we need to convert this to a numeric datatype before doing any type of aggregation.
+pop$population <- as.numeric(pop$population)
+# Confirm if population field is now a numeric datatyp
+str(pop)
+
+# Calculate the mean
+avgPopulation <- mean(pop$population)
+avgPopulation
+```
+
+C.	What is the population of the smallest city in the dataframe? Which state is it in?
+
+
+```{r}
+# Min function
+smallestCityPopulation <- min(pop$population)
+smallestCityPopulation 
+# Return a row based off a condition Using value above as the critera
+SmallestCityRow <- pop[pop$population == smallestCityPopulation, ]
+SmallestCityRow
+# Confirm
+tail(pop)
+# We see that the samllest city in the data set is Panama City, Florida whose population value matches the value stored in smallestCityPopulation
+```
+
+## Step 2: Merge the population data with the state name data
+
+D)	Read in the state name .csv file from the URL below into a dataframe named **abbr** (for "abbreviation") – make sure to use the read_csv() function from the tidyverse package: <br>
+https://intro-datascience.s3.us-east-2.amazonaws.com/statesInfo.csv
+
+
+
+```{r}
+abbr <- data.frame(read_csv("https://intro-datascience.s3.us-east-2.amazonaws.com/statesInfo.csv"))
+str(abbr)
+# This data frame has a total of 51 rows and 2 fields. This data frame is essentially the state and its abbreviation that it is widely known by.
+# Fields  = "State" and "Abbreviation"
+```
+
+E)	To successfully merge the dataframe **pop** with the **abbr** dataframe, we need to identify a **column they have in common** which will serve as the **“key”** to merge on. One column both dataframes have is the **state column**. The only problem is the slight column name discrepancy – in **pop**, the column is called **“state”** and in **abbr** – **“State.”** These names need to be reconciled for the merge() function to work. Find a way to rename **abbr’s “State”** to **match** the **state column in pop**.    
+
+
+```{r}
+# The key for both datasets will be the "state" field. But the casing is different in the data sets. change the colname of the abbr df to match the pop df
+colnames(abbr) <- c("state", "abbreviation")
+# Confirm change
+str(abbr)
+```
+
+F)	Merge the two dataframes (using the **‘state’ column** from both dataframes), storing the resulting dataframe in **dfNew**.
+
+
+```{r}
+# Merge and store in a new df
+dfNew <- merge(pop, abbr, by.x="state")
+# Confirm there are new columns of Abbreviation
+str(dfNew)
+head(dfNew)
+tail(dfNew)
+```
+
+G)	Review the structure of **dfNew** and explain the columns (aka attributes) in that dataframe.
+
+
+```{r}
+# Using str(dfNew), we see the additional column of "abbreviation". This shows the merge was successful.
+# Based off my understanding, the columns and the values that it represents are the same as the the explanation of pop with the addition of the new column.
+# Explanation of Fields
+# There are 1000 Rows and 8 fields (columns) in this data frame.
+# The "city" field is of type char and has the name of cities in the data set. This will likely require a data type conversion to do any aggregations
+# The "growth_from_2000_to_2013" field is of type char and shows the percent change in population for this timeframe. This will also require a data type conversion
+# The "latitude" field is of type numeric and holds the x-coordinate value for the lat-long system
+# The "longitude" field is of type numeric and holds the y-coordinate value for the lat-long system
+# The "population" field is of type char and has the value of the population for a row. This will likely require data type conversion for any aggregations
+# The "rank" field is of type char and shows the rank of a given row. This will likely requiure data type conversion if we aggregate on this field
+# The 'state' field is of type char and shows the state the city belongs to.
+# The 'abbreviation' field holds the commonly known abbreviation for a given state.
+```
+
+## Step 3: Visualize the data
+
+H)	Plot points (on top of a map of the US) for **each city**. Have the **color** represent the **population**.
+
+
+```{r}
+usMap <- map_data("state")
+str(usMap)
+usMap1 <- ggplot(usMap) +
+  geom_polygon(color="black", fill="white", aes(x=long, y=lat,group=group)) +
+  geom_point(data = dfNew, aes(x=longitude,y=latitude, color=population, group = state, fill = population)) + 
+  ggtitle("City Population") + coord_map()
+usMap1
+```
+
+I)	Add a block comment that criticizes the resulting map. It’s not very good.
+
+
+```{r}
+# The picture of the map is off center and the data points create a "noisy" visualization.
+# Additionally, the visualization is not intuitive in the sense that it is supposed to be up-front with what the visualization is trying to represent
+# Lastly, the shading of the blues tones adds to the confusion because almost all the points are of the same shade, showing not much variance in the data.
+```
+
+## Step 4: Group by State
+
+
+J)	Use group_by and summarise to make a dataframe of state-by-state population. Store the result in **dfSimple**.
+
+
+```{r}
+dfSimple <- dfNew %>% group_by(state) %>% summarise(sum(population))
+str(dfSimple)
+```
+
+K)	Name the most and least populous states in **dfSimple** and show the code you used to determine them.
+
+
+```{r}
+# Utilize the same approach as block C
+# Least Populous
+smallestCityPopulation <- min(dfSimple$'sum(population)')
+smallestCityPopulation 
+# Return a row based off a condition Using value above as the critera
+leastPopulousState <- dfSimple[dfSimple$'sum(population)' == smallestCityPopulation, ]
+leastPopulousState
+
+# Most Populous
+largestCityPopulation <- max(dfSimple$'sum(population)')
+largestCityPopulation 
+# Return a row based off a condition Using value above as the critera
+mostPopulousState <- dfSimple[dfSimple$'sum(population)' == largestCityPopulation, ]
+mostPopulousState
+
+# The most populous state is California, and the least populous state is Vermont.
+```
+
+## Step 5: Create a map of the U.S.,  with the color of the state representing the state population
+
+L) Make sure to expand the limits correctly and that you have used **coord_map** appropriately.
+
+
+
+```{r}
+# This code block does not work as intended. The task is to create a heatmap but mine is not working 
+# Create new Df
+mapDF2 <- data.frame(merge(dfNew,dfSimple, by.x="state"))
+#str(mapDF2)
+# Create new mapdata variable
+#usMap2 <- map_data("state")
+# Create the base layer map then add the colors on top
+#usMap3 <- ggplot(usMap2) +
+    # Add Base Map
+    #geom_polygon(color="black", fill="white", aes(x=long, #y=lat,group=group)) + 
+    # Add Color for population clusters
+    #geom_polygon(data = mapDF2, aes(x=longitude, y=latitude, #group=state, fill = sum.population.), color = NA)+
+    #ggtitle("State Population Heat Map") + coord_map()
+#usMap3
+
+# Approach 2 - ggmap similar to async videos for week 6
+bb <- c(left=min(mapDF2$longitude),
+        bottom= min(mapDF2$latitude),
+        right= max(mapDF2$longitude),
+        top= max(mapDF2$latitude))
+
+map <- get_stamenmap(bbox = bb, zoom = 4)
+ggmap(map)
+ggmap(map) + geom_polygon(data=mapDF2, color="black", alpha=0.8, aes(x=longitude, y=latitude, group=state, fill=sum.population.)) + ggtitle("State Map")
+```
